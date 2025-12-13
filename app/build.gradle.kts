@@ -41,14 +41,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("com.google.android.material:material:x.y.z")
-// 基础依赖（新建项目默认包含，确保存在）
+    
+    // 基础依赖
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.12.0")
-    //首先，在你的 build.gradle (Module: app) 文件中添加 Konfetti 库。这个库非常轻量，专门用于这种爆炸效果。
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-// Konfetti 彩带库（XML版本）
-    implementation("nl.dionsegijn:konfetti-xml:2.0.4")
-// 若使用 Kotlin
+
+    // Konfetti 依赖已移除，使用本地 ConfettiView 实现
+    // implementation("nl.dionsegijn:konfetti-xml:2.0.4")
 }

@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 成功图标（移除不存在的string引用） -->
+    <!-- 成功图标 -->
     <ImageView
         android:id="@+id/ivSuccessCheck"
         android:layout_width="100dp"
@@ -31,7 +31,7 @@
         app:layout_constraintVertical_bias="0.4" />
 
     <!-- 彩带/爆炸效果视图（层级在最上层） -->
-    <nl.dionsegijn.konfetti.xml.KonfettiView
+    <com.example.myapplication.ConfettiView
         android:id="@+id/konfettiView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

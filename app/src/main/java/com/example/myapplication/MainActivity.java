@@ -3,8 +3,8 @@ package com.example.myapplication;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.animation.OvershootInterpolator;import android.widget.ImageView;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,17 +16,6 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-// Konfetti 核心导入
-import nl.dionsegijn.konfetti.core.Party;
-import nl.dionsegijn.konfetti.core.Position;
-import nl.dionsegijn.konfetti.core.Rotation;
-import nl.dionsegijn.konfetti.core.emitter.Emitter;
-import nl.dionsegijn.konfetti.core.emitter.EmitterConfig;
-import nl.dionsegijn.konfetti.core.models.Shape;
-import nl.dionsegijn.konfetti.core.models.Size;
-import nl.dionsegijn.konfetti.xml.KonfettiView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startAllAnimations() {
-        KonfettiView konfettiView = findViewById(R.id.konfettiView);
+        ConfettiView konfettiView = findViewById(R.id.konfettiView);
         ImageView ivSuccessCheck = findViewById(R.id.ivSuccessCheck);
 
         // 1. 播放成功图标弹跳动画
@@ -94,9 +83,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 核心方法：使用12个SVG图形实现爆炸效果
-     * 已禁用旋转
      */
-    private void explodeConfettiWithSvg(KonfettiView view) {
+    private void explodeConfettiWithSvg(ConfettiView view) {
         // 1. 定义颜色
         List<Integer> colors = Arrays.asList(
                 0xFFFF5225, 0xFFFC379E, 0xFFFFB53E, 0xFF3E8EFF,
@@ -105,56 +93,26 @@ public class MainActivity extends AppCompatActivity {
         );
 
         // 2. 加载所有12个SVG图形资源
-        List<Shape> svgShapes = loadAllSvgShapes();
+        List<Drawable> svgShapes = loadAllSvgShapes();
         if (svgShapes.isEmpty()) {
             Log.w("MainActivity", "未加载到SVG资源，跳过爆炸效果");
             return;
         }
 
-        // 3. 配置发射器
-        EmitterConfig emitterConfig = new Emitter(100L, TimeUnit.MILLISECONDS).max(30);
-
-        // 4. 配置多尺寸碎片
-        List<Size> sizes = Arrays.asList(
-                new Size(12, 5f, 0.2f),
-                new Size(18, 5f, 0.2f),
-                new Size(24, 5f, 0.2f),
-                new Size(30, 5f, 0.2f)
-        );
-
-        /*
-         * 5. 禁用旋转 (Rotation)
-         * 第一个参数 enabled = false
-         */
-        Rotation rotation = new Rotation(false, 0f, 0f, 0f, 0f);
-
-        // 6. 构建爆炸Party
-        Party party = new Party(
-                0,                                  // 角度
-                360,                                // 360度全方向
-                1f,                                // 最小速度
-                10f,                                // 最大速度 (模拟抛物线力度)
-                0.98f,                              // 阻尼 (0.92 模拟空气阻力)
-                sizes,
-                colors,
-                svgShapes,
-                800L,                              // 存活时间
-                true,                               // 渐隐
-                new Position.Relative(0.5, 0.35),   // 发射位置
-                0,                                  // 延迟
-                rotation,                           // 使用禁用旋转的配置
-                emitterConfig
-        );
-
-        view.reset();
-        view.start(party);
+        // 3. 执行爆炸动画
+        // 这里的 X 和 Y 是相对于 View 的坐标，这里简单取中心点偏上的位置
+        view.post(() -> {
+            float x = view.getWidth() * 0.5f;
+            float y = view.getHeight() * 0.35f;
+            view.explode(svgShapes, colors, x, y);
+        });
     }
 
     /**
      * 加载资源逻辑
      */
-    private List<Shape> loadAllSvgShapes() {
-        List<Shape> shapeList = new ArrayList<>();
+    private List<Drawable> loadAllSvgShapes() {
+        List<Drawable> shapeList = new ArrayList<>();
 
         int[] drawableIds = {
                 R.drawable.explosion_piece1, R.drawable.explosion_piece2,
@@ -169,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Drawable drawable = ContextCompat.getDrawable(this, id);
                 if (drawable != null) {
-                    shapeList.add(new Shape.DrawableShape(drawable, true, true));
+                    shapeList.add(drawable);
                 }
             } catch (Exception e) {
                 Log.e("MainActivity", "资源加载失败 ID: " + id, e);
