@@ -1,9 +1,7 @@
 package com.example.myapplication;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
+import android.graphics.Canvas;import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -43,12 +41,11 @@ public class ConfettiView extends View {
         particles.clear();
 
         // 模拟 Konfetti 的发射数量，这里生成约 60 个粒子
-        // 彩带数量控制
         int count = 60;
 
         // 这里控制爆炸力度的范围
-        float minForce = 2f;  // 最小爆炸力度 (原 1f)
-        float maxForce = 15f; // 最大爆炸力度 (原 10f)
+        float minForce = 2f;  // 最小爆炸力度
+        float maxForce = 15f; // 最大爆炸力度
 
         for (int i = 0; i < count; i++) {
             Drawable originalDrawable = drawables.get(random.nextInt(drawables.size()));
@@ -64,14 +61,13 @@ public class ConfettiView extends View {
             int sizePx = (int) (sizeDp * density);
 
             // 初始速度和角度
-            // 修改为主要向上爆炸 (角度范围 150° - 390°)
-            // 270° 为正上方，左右各 120° 扇形区域
+            // 主要向上爆炸 (角度范围 150° - 390°)
             double angle = Math.toRadians(150 + random.nextDouble() * 240);
 
-            // 计算随机速度：在 minForce 和 maxForce 之间
+            // 计算随机速度
             float rawSpeed = minForce + random.nextFloat() * (maxForce - minForce);
 
-            // 将速度转换为像素单位 (系数 0.6f 可调整整体缩放)
+            // 将速度转换为像素单位
             float speed = rawSpeed * density * 0.6f;
 
             float vx = (float) (Math.cos(angle) * speed);
@@ -122,14 +118,14 @@ public class ConfettiView extends View {
     private static class Particle {
         float x, y;
         float vx, vy;
-        // 恢复重力效果，这里控制下降加速度
-        float gravity = 0.2f;
+        // 重力效果：稍微改小一点(原0.2f)，让它飘得久一点，方便看清渐隐
+        float gravity = 0.15f;
         float alpha = 1.0f;
-        long totalLifeTime = 2000; // 存活时间
+        long totalLifeTime = 2500; // 稍微延长总存活时间到 2.5s
         long currentLife = 0;
         Drawable drawable;
         int size;
-        float damping = 0.95f; // 阻尼
+        float damping = 0.96f; // 阻尼
 
         Particle(Drawable drawable, float x, float y, float vx, float vy, int size) {
             this.drawable = drawable;
@@ -144,23 +140,27 @@ public class ConfettiView extends View {
             currentLife += dt;
 
             // 应用物理
-            x += vx * (dt / 10f); // 简单的时间步长缩放
+            x += vx * (dt / 10f);
             y += vy * (dt / 10f);
 
             // 应用阻尼
             vx *= damping;
-            // vy *= damping; // 注释掉此行以实现垂直方向匀加速（忽略空气阻力）
 
-            // 应用重力 (Gravity) - 向下加速
-            // Konfetti 的 gravity 是由 emitter 配置的，或者 vector field。
-            // 这里恢复了向下的加速度，这里控制重力的时间缩放系数
+            // 应用重力
             vy += gravity * (dt / 5f);
 
-            // 渐隐效果
-            if (currentLife > totalLifeTime * 0.7) { // 最后 30% 时间渐隐
-                 float remaining = totalLifeTime - currentLife;
-                 if (remaining < 0) remaining = 0;
-                 alpha = remaining / (float)(totalLifeTime * 0.3);
+            // === 渐隐效果优化 ===
+            // 从生命周期的 20% 处就开始渐隐（原代码是 70%，导致还没来得及消失就掉出屏幕了）
+            // 这样能确保你看到明显的慢慢消失效果
+            float fadeThreshold = 0.2f;
+
+            if (currentLife > totalLifeTime * fadeThreshold) {
+                float remaining = totalLifeTime - currentLife;
+                if (remaining < 0) remaining = 0;
+
+                // 计算剩余寿命比例
+                float fadeDuration = totalLifeTime * (1.0f - fadeThreshold);
+                alpha = remaining / fadeDuration;
             }
         }
 
@@ -171,6 +171,7 @@ public class ConfettiView extends View {
         void draw(Canvas canvas) {
             if (alpha <= 0) return;
 
+            // 关键：必须设置 Drawable 的 Alpha
             drawable.setAlpha((int) (alpha * 255));
 
             int halfSize = size / 2;
